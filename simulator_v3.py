@@ -12,16 +12,18 @@ tower_allocations = [7, 5, 5, 5, 5]
 tower_positions = [(11,11), (0, 22), (22, 22), (22, 0), (0, 0)]
 
 deadzones = [(12, 11), (12, 12), (12, 13), (12, 14), (12, 15), (12, 16), (12, 17), (12,18), (12, 19), (12, 20), (12, 21),
-(13, 11), (13, 12), (13, 13), (13, 14), (13, 15), (13, 16), (13, 17), (13,18), (13, 19), (13, 20), 
-(14, 11), (14, 12), (14, 13), (14, 14), (14, 15), (14, 16), (14, 17), (14,18), (14, 19), 
-(15, 11), (15, 12), (15, 13), (15, 14), (15, 15), (15, 16), (15, 17), (15,18), 
-(16, 11), (16, 12), (16, 13), (16, 14), (16, 15), (16, 16), (16, 17), 
-(17, 11), (17, 12), (17, 13), (17, 14), (17, 15), (17, 16), 
-(18, 11), (18, 12), (18, 13), (18, 14), (18, 15), 
-(19, 11), (19, 12), (19, 13), (19, 14), 
-(20, 11), (20, 12), (20, 13),
-(21, 11), (21, 12),
-(22, 11)]
+             (13, 11), (13, 12), (13, 13), (13, 14), (13, 15), (13, 16), (13, 17), (13,18), (13, 19), (13, 20), 
+             (14, 11), (14, 12), (14, 13), (14, 14), (14, 15), (14, 16), (14, 17), (14,18), (14, 19), 
+             (15, 11), (15, 12), (15, 13), (15, 14), (15, 15), (15, 16), (15, 17), (15,18), 
+             (16, 11), (16, 12), (16, 13), (16, 14), (16, 15), (16, 16), (16, 17), 
+             (17, 11), (17, 12), (17, 13), (17, 14), (17, 15), (17, 16), 
+             (18, 11), (18, 12), (18, 13), (18, 14), (18, 15), 
+             (19, 11), (19, 12), (19, 13), (19, 14), 
+             (20, 11), (20, 12), (20, 13),
+             (21, 11), (21, 12),
+             (22, 11)]
+
+
 deadzone_allocation = 1
 
 show = np.zeros((22,22))
@@ -78,11 +80,12 @@ def get_allocation(deadzone, tower, pos):
 
     if deadzone:
         if pos in deadzones: # If agent is in dead zone, override normal allocation
+            #print(pos, " agent in dead zone...")
             allocation = deadzone_allocation
 
     return allocation
 
-def run_experiment(extra_logic=False, dead_zone = False, dead_zone_suppression=False, num_trials=10, num_walks=1000, num_steps=5, debug=False):
+def run_experiment(extra_logic=False, dead_zone = False, num_trials=10, num_walks=1000, num_steps=5, debug=False):
 
     mean_allocations = []
 
@@ -127,7 +130,7 @@ def run_experiment(extra_logic=False, dead_zone = False, dead_zone_suppression=F
             closest_towers = get_towers(agent_pos, debug=debug)
             new_ranking = closest_towers[:3]
 
-            if current_ranking[0] != new_ranking[0]:
+            if current_ranking[0] != new_ranking[0]:    #### NUMBER 1 CHECK
 
                 transitions_encountered += 1
                 transition = current_ranking + new_ranking
@@ -140,11 +143,12 @@ def run_experiment(extra_logic=False, dead_zone = False, dead_zone_suppression=F
                     print("New ranking: ", new_ranking)
                     print("Current allocation", current_allocation)
 
-                if transition not in transition_history:
+                if transition not in transition_history:    #### NUMBER 2 CHECK
 
                     if debug: print("New transition experience.")
 
                     new_allocation = get_allocation(dead_zone, new_ranking[0], agent_pos)
+                    
                     delta_allocation = new_allocation - current_allocation
 
                     allocation_dict[transition] = delta_allocation
@@ -158,31 +162,11 @@ def run_experiment(extra_logic=False, dead_zone = False, dead_zone_suppression=F
                 else:
 
                     if allocation_dict[transition] >= 0: # If expected allocation is higher, make the transition
+                        
                         if debug: print("Positive delta, transitioning to new tower.")
-                        if dead_zone_suppression:  # If dead zone suppression is activated:
-
-                            if transition not in suspended_transitions: # If transition not suspended:
-                                new_allocation = get_allocation(dead_zone, new_ranking[0], agent_pos)
-
-                                real_delta_allocation = new_allocation - current_allocation
-                                expected_delta_allocation = allocation_dict[transition]
-
-                                if expected_delta_allocation > real_delta_allocation:   # Dead zone check
-                                    suspended_transitions.append(transition)
-                                current_allocation = new_allocation
-                                transition_counter += 1
-
-                            else: # Suspended transition, do not make the transition
-                                if suspend_counter == 0:
-                                    suspended_transitions.remove(transition) # Get the transition off the suspend list
-                                    suspend_counter = 5
-                                else:
-                                    suspend_counter -= 1
-
-                        else: # Dead zone suppression is not activated! Continue with the transition
-                            new_allocation = get_allocation(dead_zone, new_ranking[0], agent_pos)
-                            current_allocation = new_allocation
-                            transition_counter += 1
+                        new_allocation = get_allocation(dead_zone, new_ranking[0], agent_pos)
+                        current_allocation = new_allocation
+                        transition_counter += 1
 
                     else: # If expected allocation is lower:
                         if not extra_logic: # If extra_logic is not activated make the transition
@@ -191,23 +175,33 @@ def run_experiment(extra_logic=False, dead_zone = False, dead_zone_suppression=F
                             transition_counter += 1
                         else:
                             if debug: print("Negative delta, not transitioning to new tower.")
-                            override_counter += 1
-
-
-                        pass # If extra_logic is activated do not make the transition
+                            if new_ranking[0] == 1 and agent_pos in deadzones:
+                                current_allocation = 5
+                                    
+                            else:
+                                override_counter += 1
+                            pass # If extra_logic is activated do not make the transition
 
                 if debug: print("New allocation: ", new_allocation)
 
             else:
                 current_allocation = get_allocation(dead_zone, current_ranking[0], agent_pos)
 
+                
+                
+                
+                
+                
             if type(values[agent_pos[0], agent_pos[1]]) == list:
                 values[agent_pos[0], agent_pos[1]].append(current_allocation)
             else:
                 values[agent_pos[0], agent_pos[1]] = []
                 values[agent_pos[0], agent_pos[1]].append(current_allocation)
             #print(agent_pos, current_allocation)
+            
+            
             lastallocation[agent_pos[0]][agent_pos[1]] = current_allocation
+            
             allocations.append(current_allocation) # After every walk add current allocation to list
 
         if debug: print("Trial " + str(e) + " Mean allocation: " + str(np.mean(allocations)))
@@ -234,6 +228,7 @@ def run_experiment(extra_logic=False, dead_zone = False, dead_zone_suppression=F
     return mean_allocations, heatmap, lastallocation
 
 
+
 # Experiment 1
 
 exp1vals = []
@@ -243,7 +238,7 @@ exp1heatmaps = []
 exp1lastallocations = []
 
 print("\nNormal Environment / Default Agent: ")
-allocs, heatmap, lastallocation = run_experiment(extra_logic=False, dead_zone=False, dead_zone_suppression=False,
+allocs, heatmap, lastallocation = run_experiment(extra_logic=False, dead_zone=False,
                                     num_trials=1000, num_walks=2000, num_steps=10, debug=False)
 
 exp1vals.append(allocs)
@@ -253,7 +248,7 @@ exp1heatmaps.append(heatmap)
 exp1lastallocations.append(lastallocation)
 
 print("\nNormal Environment / Agent w Extra Logic: ")
-allocs, heatmap, lastallocation = run_experiment(extra_logic=True, dead_zone=False, dead_zone_suppression=False,
+allocs, heatmap, lastallocation = run_experiment(extra_logic=True, dead_zone=False, 
                                     num_trials=1000, num_walks=2000, num_steps=10, debug=False)
 exp1vals.append(allocs)
 exp1means.append(np.mean(allocs))
@@ -312,7 +307,6 @@ plt.show()
 plt.close()
 """
 
-
 # Experiment 2
 
 
@@ -324,7 +318,7 @@ exp2lastallocations = []
 
 
 print("\nDead Zone Environment / Default Agent: ")
-allocs, heatmap, lastallocation = run_experiment(extra_logic=False, dead_zone=True, dead_zone_suppression=False,
+allocs, heatmap, lastallocation = run_experiment(extra_logic=False, dead_zone=True,
                                     num_trials=1000, num_walks=2000, num_steps=10, debug=False)
 
 exp2vals.append(allocs)
@@ -335,7 +329,7 @@ exp2lastallocations.append(lastallocation)
 
 
 print("\nDead Zone Environment / Agent w Extra Logic: ")
-allocs, heatmap, lastallocation = run_experiment(extra_logic=True, dead_zone=True, dead_zone_suppression=False,
+allocs, heatmap, lastallocation = run_experiment(extra_logic=True, dead_zone=True,
                                     num_trials=1000, num_walks=2000, num_steps=10, debug=False)
 
 exp2vals.append(allocs)
@@ -345,25 +339,12 @@ exp2heatmaps.append(heatmap)
 exp2lastallocations.append(lastallocation)
 
 
-"""
-print("\nDead Zone Environment / Agent w Dead Zone Suppression Logic")
-allocs, heatmap, lastallocation = run_experiment(extra_logic=True, dead_zone=True, dead_zone_suppression=True,
-                                    num_trials=100, num_walks=5000, num_steps=10, debug=False)
-
-
-exp2vals.append(allocs)
-exp2means.append(np.mean(allocs))
-exp2stds.append(np.std(allocs))
-exp2heatmaps.append(heatmap)
-exp2lastallocations.append(lastallocation)
-"""
-
 # Plots for Experiment 2
 
 df = pd.DataFrame()
 df["Scenario 1"] = exp2vals[0]
 df["Scenario 2"] = exp2vals[1]
-# df["Scenario 3"] = exp2vals[2]
+
 
 """
 sns.boxplot(data=df, whis=[5,95])
