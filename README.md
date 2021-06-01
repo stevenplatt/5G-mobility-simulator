@@ -22,7 +22,7 @@ $: cd 5G-mobility-simulator
 
 ## Simulator Output
 
-The simulation environment runs two different simulations. One where the default behavior of connecting to the closest base station is used, and a second where an override is performed in certain conditions to enhance performance. At the end of the simulator python file are a number of graph outputs. These include: 
+The simulation environment runs two different simulations. One where the default behavior of connecting to the closest base station is used, and a second where an override is performed in certain conditions to enhance performance. At the end of the simulation there are a number of graph outputs. These include: 
 
 ### Random Walk Allocation Histogram
 
