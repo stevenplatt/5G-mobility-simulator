@@ -1,7 +1,7 @@
 # 5G-mobility-simulator
 A simple 5G mobility simulator written in Python.
 
-This mobility simulator recreates the devices handoff procedure that occurs in a 5G network and was used to produce a research paper titled "Using Transition Learning to Enhance Mobile-Controlled Handoff". 
+This mobility simulator recreates the devices handoff procedure that occurs in a 5G network and was used to produce a research paper titled "Using Transition Learning to Enhance Mobile-Controlled Handoff" (pending publication). 
 
 The simulator operates based on the 23x23 grid environment shown below: 
 
@@ -41,6 +41,6 @@ The simulation environment runs two different simulations. One where the default
 ![Final Simulation Result](https://github.com/stevenplatt/5G-mobility-simulator/blob/main/img/simulation_results.png?raw=true)
 
 
-Full explanation of the information theory relating to the random walk behavior and network allocation can be found in the research paper relating to this simulator (pending). 
+Full explanation of the information theory relating to the random walk behavior and network allocation can be found in the research paper relating to this simulator (pending publication). 
 
 
